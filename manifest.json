@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "manifest_version": 2,
+
+  "name": "mysnippets",
+  "description": "mysnippets",
+
+  "icons": {
+    "16": "assets/favicon.png"
+  },
+
+  "content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com 'unsafe-eval'; object-src 'self'",
+
+  "permissions": [
+    "background",
+    "tabs",
+    "storage",
+    "clipboardWrite"
+  ],
+
+  "web_accessible_resources": [ "assets/*", "page/*" ],
+
+  "browser_action": { "default_title": "mysnippets" },
+
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  }
+
+}

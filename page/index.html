@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mysnippets</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Grandstander&display=swap&text=mysnippetsjspy" rel="stylesheet">
+  <script src="./vue.min.js"></script>
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.min.css">
+
+<style>
+* { box-sizing: border-box; }
+body { width: 100%; height: 100vh; padding: 0; margin: 0; overflow: hidden; }
+#app {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template:
+    "header"
+    "main  " minmax(0, 1fr)
+    / 100%;
+  background-color: #fff;
+  color: #222;
+  font-size: 14px;
+}
+.header {
+  grid-area: header;
+  padding: 8px 6px;
+  border-bottom: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.main {
+  grid-area: main;
+}
+
+a.logo {
+  height: 28px;
+  padding: 7px 10px;
+  background-color: royalblue;
+  border-radius: 20px;
+  font-family: 'Grandstander';
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+}
+.header > input[type=text] {
+  flex: 1;
+  height: 28px;
+  min-width: 50px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: none;
+  padding-right: 28px;
+}
+.header > select {
+  height: 28px;
+  min-width: 50px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: none;
+}
+.header > .icon:hover { cursor: pointer ;}
+
+.items {
+  overflow-y: auto;
+}
+.items.listview {
+  display: flex;
+  flex-direction: column;
+}
+.items.gridview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 20px 20px;
+  padding: 16px;
+}
+
+.item:focus {
+  background-color: #eee;
+}
+.item {
+  height: 200px;
+  /* padding: 6px 6px 6px 16px; */
+  padding: 6px 6px 6px 0px;
+  /* padding: 6px; */
+  border-bottom: 1px solid #ddd;
+  display: grid;
+  grid-template:
+    "side    text" 100%
+    / 36px minmax(0, 1fr);
+}
+.item-side {
+  padding: 0 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.item-language {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: 'Grandstander';
+  background-color: #888;
+  color: #fff;
+  border: none;
+  outline: none;
+  text-align-last: center;
+}
+.item-id {
+  font-family: monospace;
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+  transform: rotateZ(-90deg); }
+.item-text {
+  height: 100%;
+  background-color: #ccc;
+  border: 1px solid #ddd;
+}
+.action { padding: 3px; border-radius: 3px; font-size: 20px; }
+.action:hover { background-color: #eee; cursor: pointer; }
+</style>
+</head>
+
+<body>
+<div id="app">
+
+  <div class="header">
+    <a class="logo" href="https://github.com/cozytnk/mysnippets">mysnippets</a>
+    <span>{{ items.length }} snippets</span>
+    <input type="text" placeholder="filter" v-model="filter.text">
+    <select v-model="itemsLayout">
+      <option value="list">List</option>
+      <option value="grid">Grid</option>
+      <option value="grid">1 col</option>
+      <option value="grid">2 cols</option>
+      <option value="grid">3 cols</option>
+    </select>
+    <span title="New Snippet" class="icon material-icons" @click="addNewItem">add</span>
+    <span title="" class="icon material-icons" @click=";">refresh</span>
+    <span title="" class="icon material-icons" @click="downloadItems">download</span>
+    <span title="" class="icon material-icons" @click=";">upload</span>
+    <span title="check duplicates" class="icon material-icons" @click=";">filter_none</span>
+  </div>
+
+  <div class="main items" :class="{ listview: itemsLayout === 'list', gridview: itemsLayout === 'grid' }">
+    <div class="item" v-for="(item, index) in filteredItems" :key="item.id" tabindex="0" :index="index" @keydown="onkeydown">
+      <div class="item-side" style="grid-area: side;">
+        <select class="item-language" v-model="item.language" @change="saveItem(item)">
+          <option value="javascript">js</option>
+          <option value="html">html</option>
+          <option value="css">css</option>
+          <option value="python">py</option>
+        </select>
+        <span style="margin: auto;"></span>
+        <span class="item-id">#{{ item.id }}</span>
+        <!-- <span class="item-index">{{ index + 1 }}</span> -->
+        <span style="margin: auto;"></span>
+        <span class="material-icons action" @click="copy(item.text)">content_copy</span>
+        <span class="material-icons action" @click="deleteItem(item.id)">delete</span>
+      </div>
+      <editor class="item-text" style="grid-area: text;" :value.sync="item.text" :language="item.language" @change="saveItem(item)"></editor>
+    </div>
+  </div>
+
+</div>
+
+<!-- See https://stackoverflow.com/questions/63179813/how-to-run-the-monaco-editor-from-a-cdn-like-cdnjs -->
+
+<script src="./monaco-require.js"></script>
+<!-- <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' } }</script> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.nls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.js"></script>
+
+<!-- <script src="./loader.min.js"></script>
+<script src="./workerMain.js"></script>
+<script src="./editor.main.nls.js"></script>
+<script src="./editor.main.js"></script>
+<script src="./tsMode.js"></script>
+<script src="./javascript.js"></script>
+<script src="./tsWorker.js"></script> -->
+
+
+<script src="./index.js"></script>
+</body>
