@@ -1,0 +1,13 @@
+
+<style>
+/* ::-webkit-scrollbar { display: none; } */
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background-color: transparent; }
+::-webkit-scrollbar-thumb { background-color: rgba(255,0,255,.5); }
+</style>
+
+<ol></ol>
+
+<script>
+document.querySelector('ol').innerHTML = [...Array(50)].map(_ => '<li>one of the list item</li>').join('')
+</script>
