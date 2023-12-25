@@ -1,0 +1,82 @@
+
+<script>
+//
+class Data extends Array {
+  constructor (...args) {
+    console.log('constructor', args)
+    super(...args)
+    return new Proxy(this, {
+      set: (target, property, value, receiver) => {
+        console.log('set:', property, value)
+        // return false
+        // return true
+        return property.startsWith('#')
+      },
+      get: (target, property, receiver) => {
+        console.log('property:', property)
+        if (property in target) {
+          return target[property]
+        }
+        if (property in target.ids) {
+          let i = target.ids[property]
+          return target[i]
+        }
+        return undefined
+      },
+    })
+  }
+  #ids;
+  get ids () {
+    if (!this.#ids) {
+      this.#ids = {}
+      for (let i in [...this]) {
+        let d = this[i]
+        let { id } = d
+        // console.assert(!(id in this.ids), `id: ${id}, this.ids: ${this.ids}`)
+        if (id in this.#ids) {
+          throw Error(`duplicated id: "${id}", i: ${i}, d: ${JSON.stringify(d)}`)
+        }
+        if (!id) {
+          console.warn(`falsy id: "${id}", i: ${i}, d: ${JSON.stringify(d)}`)
+        }
+        this.#ids[id] = i
+      }
+    }
+    return this.#ids // FIXME: deep copy ?
+  }
+  indexNames = ['name', 'age']
+  #indices;
+  get indices () {
+    if (!this.#indices) {
+      this.#indices = {}
+      for (let i in [...this]) {
+        let d = this[i]
+        let { id } = d
+        for (let key of this.indexNames) {
+          this.#indices[key] ??= {}
+          let value = d[key]
+          if (value) {
+            this.#indices[key][value] ??= []
+            this.#indices[key][value].push(id)
+          }
+        }
+      }
+    }
+    return this.#indices // FIXME: deep copy ?
+  }
+}
+
+D = new Data(...[
+  {id: 'aaa', name: 'A'},
+  {id: 'bbb', name: 'B'},
+  {id: 'ccc', name: 'C', age: 20},
+  // {id: 'ccc', name: 'B'},
+  {id: 'ddd', name: 'B'},
+])
+
+console.log('D:', D)
+console.log('D[0]', D[0])
+console.log('D.filter(d => 1):', D.filter(d => 1))
+D[100] = 12
+D.push(7)
+</script>
