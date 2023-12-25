@@ -22,6 +22,26 @@ class Data extends Array {
           return target[i]
         }
         return undefined
+        /*
+          rawdata = [
+            {id: 'u01', name: 'Mr.A', age: 20, catX: 'X0'},
+            {id: 'u02', name: 'Mr.B', catX: 'X0'},
+            {id: 'u03', name: 'Mr.C', catX: 'X1', catY: 'Y0'},
+          ]
+          indexKeys = ['catX', 'catY']
+          X[0] -> {id: 'u01', ...}
+          X.u01 -> {id: 'u01', ...}
+          X.ids -> ['u01', 'u02', ...]
+          X.catX -> ['X0', 'X1']
+            or [{value: 'X0', count: 2}, {value: 'X1', count: 1}]
+            or [{value: 'X0', ids: ['u01', 'u02']}, {value: 'X1', ids: ['u03']}]
+            or [{value: 'X0', data: [{id: 'u01', ...}, {id: 'u02', ...}]}, {value: 'X1', data: [{id: 'u03', ...}]}]
+              data / entries / items / ...
+              name / value / ...
+          X.X0 -> ['u01', 'u02'] or [{id: 'u01', ...}, {id: 'u02', ...}]
+          ---
+          X._{q} or X`q` or X[`?q`]
+        */
       },
     })
   }
